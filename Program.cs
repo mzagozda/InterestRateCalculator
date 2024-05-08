@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
+using System.IO; // Include this for file operations
 
 Console.WriteLine("Enter the starting date (yyyy-mm-dd):");
 DateTime startDate = DateTime.ParseExact(Console.ReadLine(), "yyyy-MM-dd", CultureInfo.InvariantCulture);
@@ -20,21 +22,33 @@ Console.WriteLine("Initial amount plus fee: " + totalAmount.ToString("C2"));
 
 DateTime nextMonthDate = startDate.AddMonths(1);
 
-while (nextMonthDate <= endDate)
+// Create a StreamWriter to write to a CSV file
+using (StreamWriter writer = new StreamWriter("loan_details.csv"))
 {
-    decimal monthlyInterest = totalAmount * (annualInterestRate / 100 / 12);
-    totalAmount += monthlyInterest;
+    // Write CSV header
+    writer.WriteLine("Date,Fee,Total");
 
-    if (nextMonthDate < endDate)
+    while (nextMonthDate <= endDate)
     {
-        fee = amount * feePercentage; // Fee based on the initial amount
-        totalAmount += fee;
+        decimal monthlyInterest = totalAmount * (annualInterestRate / 100 / 12);
+        totalAmount += monthlyInterest;
+
+        if (nextMonthDate < endDate)
+        {
+            fee = amount * feePercentage; // Fee based on the initial amount
+            totalAmount += fee;
+        }
+
+        // Write to console
+        Console.WriteLine($"Date: {nextMonthDate:yyyy-MM-dd}, fee: {fee:C2}, total: {totalAmount:C2}");
+
+        // Write the same details to the CSV file
+        writer.WriteLine($"{nextMonthDate:yyyy-MM-dd},{fee:C2},{totalAmount:C2}");
+
+        nextMonthDate = nextMonthDate.AddMonths(1);
     }
-
-    Console.WriteLine($"As of {nextMonthDate.ToString("yyyy-MM-dd")}, the total amount with interest and fees is: {totalAmount.ToString("C2")}");
-
-    nextMonthDate = nextMonthDate.AddMonths(1);
 }
 
 Console.WriteLine("Final amount to be paid by " + endDate.ToString("yyyy-MM-dd") + ": " + totalAmount.ToString("C2"));
+Console.ReadLine();
 Console.ReadLine();
